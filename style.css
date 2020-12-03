@@ -1,0 +1,17 @@
+body {
+  font-family: "Open Sans", "Liberation Sans", "Hack", sans-serif;
+}
+
+.grid-main {
+  margin: 0px;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  gap: 0px 0px;
+  grid-template-areas: ".";
+  align-items: center;
+  justify-items: center;
+}
+
+/*# sourceMappingURL=style.css.map */
