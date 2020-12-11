@@ -2,6 +2,10 @@ body {
   font-family: "Open Sans", "Liberation Sans", "Hack", sans-serif;
 }
 
+#main {
+  background-color: grey;
+}
+
 .grid-main {
   margin: 0px;
   height: 100%;
@@ -12,6 +16,10 @@ body {
   grid-template-areas: ".";
   align-items: center;
   justify-items: center;
+}
+
+text {
+  color: white;
 }
 
 /*# sourceMappingURL=style.css.map */
