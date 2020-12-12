@@ -18,6 +18,37 @@ const force = d3.forceSimulation();
 const mySvg = d3.select("#main");
 let node = mySvg.selectAll('.node');
 
+//functions for dynamic interaction
+const addNode = (e) => {
+  const nodes = force.nodes();
+  //console.log("nodes", nodes);
+  const coordinates = d3.pointer(e);
+  //console.log("coord", coordinates);
+  const newNode = { x: coordinates[0], y: coordinates[1], id: nodes.length };
+  nodes.push(newNode);
+  force.nodes(nodes);
+  update();
+  //console.log(node);
+}
+
+const startAddEdge = (e) => {
+  console.log("event", e);
+  console.log("ehllo node");
+}
+
+const turnOffAddNode = (e) => {
+  console.log("off add noe");
+  mySvg.on('mousedown', null);
+}
+
+const turnOnAddNode = (e) => {
+  console.log("on add node");
+  mySvg.on('mousedown', addNode);
+}
+
+//listener for dynamic interaction
+mySvg.on('mousedown', addNode);
+
 // update graph visualization with svg drawings
 const update = () => {
   node = mySvg.selectAll('.node')
@@ -27,22 +58,14 @@ const update = () => {
     .attr('r', nodeValues.radius)
     .style('fill', (d) => {
       return colors[d.id % 6];
-    });
+    })
+    .on('mousedown', startAddEdge)
+    //turn of listener for add node so that new node is not created
+    .on('mouseover', turnOffAddNode)
+    .on('mouseout', turnOnAddNode);
   force.restart();
 }
 
-//functions for dynamic interaction
-const addNode = (e) => {
-  const nodes = force.nodes();
-  console.log("nodes", nodes);
-  const coordinates = d3.pointer(e);
-  console.log("coord", coordinates);
-  const newNode = { x: coordinates[0], y: coordinates[1], id: nodes.length };
-  nodes.push(newNode);
-  force.nodes(nodes);
-  update();
-  console.log(node);
-}
 
 const tick = (e) => {
   node.attr('cx', function(d) {
@@ -53,8 +76,6 @@ const tick = (e) => {
 
 force.on('tick', tick);
 
-//listeners for dynamic interaction
-mySvg.on('mousedown', addNode);
 
 
 
