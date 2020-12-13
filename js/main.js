@@ -18,6 +18,9 @@ const force = d3.forceSimulation();
 const mySvg = d3.select("#main");
 let node = mySvg.selectAll('.node');
 
+//local state variables
+let addingEdge = 0;
+
 //functions for dynamic interaction
 const addNode = (e) => {
   const nodes = force.nodes();
@@ -31,23 +34,47 @@ const addNode = (e) => {
   //console.log(node);
 }
 
-const startAddEdge = (e) => {
-  console.log("event", e);
-  console.log("ehllo node");
+const addEdge = (e) => {
+  if(addingEdge){
+    console.log("add edge");
+    addingEdge = 0;
+  }
+  turnOffAddEdge();
 }
 
-const turnOffAddNode = (e) => {
-  console.log("off add noe");
+const startAddEdge = (e, d) => {
+  addingEdge = 1;
+  //TODO add filter function here to excluded selected node
+  const selectedNodeId = d.id;
+  console.log("selected Node id", selectedNodeId);
+  mySvg.selectAll('.node')
+    .filter((d) => {
+      return(selectedNodeId != d.id)
+    })
+      .on('mouseup.addEdge', addEdge);
+}
+
+const turnOffAddNode = () => {
   mySvg.on('mousedown', null);
 }
 
-const turnOnAddNode = (e) => {
-  console.log("on add node");
+const turnOnAddNode = () => {
   mySvg.on('mousedown', addNode);
 }
 
+const turnOnAddEdge = () => {
+  node = mySvg.selectAll('.node')
+    .on('mouseup.addEdge', addEdge);
+}
+
+const turnOffAddEdge = () => {
+  mySvg.selectAll('.node')
+    .on('mouseup.addEdge', null);
+}
+
 //listener for dynamic interaction
-mySvg.on('mousedown', addNode);
+turnOnAddNode();
+mySvg.on('mouseup', turnOffAddEdge);
 
 // update graph visualization with svg drawings
 const update = () => {
@@ -55,14 +82,15 @@ const update = () => {
     .data(force.nodes())
     .enter().append('circle')
     .attr('class', 'node')
+    .attr('id', (d) => {return(d.id)})
     .attr('r', nodeValues.radius)
     .style('fill', (d) => {
       return colors[d.id % 6];
     })
     .on('mousedown', startAddEdge)
-    //turn of listener for add node so that new node is not created
-    .on('mouseover', turnOffAddNode)
-    .on('mouseout', turnOnAddNode);
+  //turn of listener for add node so that new node is not created
+    .on('mouseover.addNode', turnOffAddNode)
+    .on('mouseout.addNode', turnOnAddNode)
   force.restart();
 }
 
