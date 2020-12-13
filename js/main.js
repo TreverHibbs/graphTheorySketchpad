@@ -35,6 +35,7 @@ const addNode = (e) => {
 }
 
 const deleteNode = (e, d) => {
+  e.preventDefault();
   nodes.splice(d.index, 1);
   update();
 }
@@ -53,42 +54,43 @@ const addEdge = (e, d) => {
 }
 
 const startAddEdge = (e, d) => {
-  selectedNodeIndex = d.id;
+  selectedNodeIndex = d.index;
   //add a listener to every node but the current one so that addEdge
   //is not called when user releases mouse over selected edge
   mySvg.selectAll('.node')
     .filter((d) => {
       return(selectedNodeIndex != d.index)
     })
-    .on('mouseup.addEdge', addEdge);
+    .on('click.addEdge', addEdge);
 }
 
 // interface on/off functions
 const turnOffAddNode = () => {
-  mySvg.on('mousedown', null);
+  mySvg.on('click.addNode', null);
 }
 
 const turnOnAddNode = () => {
-  mySvg.on('mousedown', addNode);
+  mySvg.on('click.addNode', addNode);
 }
 
 const turnOnAddEdge = () => {
   mySvg.selectAll('.node')
-    .on('mouseup.addEdge', addEdge);
+    .on('click.addEdge', addEdge);
 }
 
 const turnOffAddEdge = () => {
   mySvg.selectAll('.node')
-    .on('mouseup.addEdge', null);
+    .on('click.addEdge', null);
 }
 
 const turnOffDefault = (e) => {
   e.preventDefault();
 }
 
-//listener for dynamic interaction
+// interface listeners
+// more interface listeners within update function
 turnOnAddNode();
-mySvg.on('mouseup', turnOffAddEdge);
+mySvg.on('click', turnOffAddEdge);
 
 // update graph visualization with svg drawings
 const update = () => {
@@ -120,7 +122,7 @@ const update = () => {
         return colors[d.id % 6];
       })
       // interface listeners
-      .on('mousedown', startAddEdge)
+      .on('click', startAddEdge)
       .on('auxclick', deleteNode) 
       .on('contextmenu', turnOffDefault)
       // turn of listener for add node so that new node is not created
