@@ -28,16 +28,15 @@ let selectedNodeIndex = null;
 
 //functions for dynamic interaction
 const addNode = (e) => {
-  console.log("nodes", nodes);
   const coordinates = d3.pointer(e);
-  console.log("coord", coordinates);
   const newNode = { x: coordinates[0], y: coordinates[1], id: nodes.length };
   nodes.push(newNode);
   update();
 }
 
 const deleteNode = (e, d) => {
-  console.debug("delete Node");
+  nodes.splice(d.index, 1);
+  update();
 }
 
 /**
@@ -94,6 +93,7 @@ mySvg.on('mouseup', turnOffAddEdge);
 // update graph visualization with svg drawings
 const update = () => {
   edges = mySvg.selectAll('.link').data(links);
+  edges.exit().remove();
   const edgesEnter = edges
     .enter().append('line')
       .attr('x1', function(d) { return d.source.x; })
@@ -108,6 +108,7 @@ const update = () => {
   edges = edgesEnter.merge(edges);
 
   vertices = mySvg.selectAll('.node').data(nodes);
+  vertices.exit().remove();
   const verticesEnter = vertices
     .enter().append('circle')
       .attr('cx', function(d) { return d.x; })
