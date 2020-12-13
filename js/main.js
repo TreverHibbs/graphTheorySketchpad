@@ -36,6 +36,10 @@ const addNode = (e) => {
   update();
 }
 
+const deleteNode = (e, d) => {
+  console.debug("delete Node");
+}
+
 /**
  * @desc A funtion that is called when a mouse drag is detected from another node
  * @param e - the event object
@@ -60,6 +64,7 @@ const startAddEdge = (e, d) => {
     .on('mouseup.addEdge', addEdge);
 }
 
+// interface on/off functions
 const turnOffAddNode = () => {
   mySvg.on('mousedown', null);
 }
@@ -76,6 +81,10 @@ const turnOnAddEdge = () => {
 const turnOffAddEdge = () => {
   mySvg.selectAll('.node')
     .on('mouseup.addEdge', null);
+}
+
+const turnOffDefault = (e) => {
+  e.preventDefault();
 }
 
 //listener for dynamic interaction
@@ -95,6 +104,7 @@ const update = () => {
       .attr('stroke', 'white')
       .attr('stroke-width', '3');
 
+  // add all edges to global selection
   edges = edgesEnter.merge(edges);
 
   vertices = mySvg.selectAll('.node').data(nodes);
@@ -108,11 +118,16 @@ const update = () => {
       .style('fill', (d) => {
         return colors[d.id % 6];
       })
+      // interface listeners
       .on('mousedown', startAddEdge)
+      .on('auxclick', deleteNode) 
+      .on('contextmenu', turnOffDefault)
       // turn of listener for add node so that new node is not created
       .on('mouseover.addNode', turnOffAddNode)
       .on('mouseout.addNode', turnOnAddNode);
 
+  // add all vertices to gobal selection
+  // This is important for the updating of positions
   vertices = verticesEnter.merge(vertices);
 
   force.nodes(nodes);
