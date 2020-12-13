@@ -37,22 +37,53 @@ const addNode = (e) => {
 const deleteNode = (e, d) => {
   e.preventDefault();
   nodes.splice(d.index, 1);
+
+  //delete incident edges
+  
+
+  // interface state control
+  turnOnAddNode();
+
+  update();
+}
+
+const deleteLink = (e, d) => {
+  e.preventDefault();
+  links.splice(d.index, 1);
+
   update();
 }
 
 /**
- * @desc A funtion that is called when a mouse drag is detected from another node
+ * @desc A function that is called when a mouse drag is detected from another node
  * @param e - the event object
  *        d - the datum of the node that triggered the mouseup event
  */
 const addEdge = (e, d) => {
-  console.debug('addEdge');
   const newLink = { source: selectedNodeIndex, target: d.index };
   links.push(newLink);
+  force.force("link").links(links);
+
+  // update nodes with newLink's index
+  updateNodeEdges(selectedNodeIndex);
+  updateNodeEdges(d.index);
+
+  // interface state control
   turnOffAddEdge();
   turnOnStartAddEdge();
 
   update();
+}
+const updateNodeEdges = (nodeIndex, linkIndex) => {
+  const node = nodes[nodeIndex];
+  if(node.edges){
+    node.edges.push(linkIndex);
+  } else {
+    Object.defineProperty(node, 'edges', {
+      value: [linkIndex],
+      writable: false
+    });
+  }
 }
 
 const startAddEdge = (e, d) => {
@@ -67,6 +98,7 @@ const startAddEdge = (e, d) => {
     .on('click.addEdge', addEdge)
     .on('click.startAddEdge', null);
 }
+
 
 // interface on/off functions
 const turnOffAddNode = () => {
@@ -122,7 +154,10 @@ const update = () => {
       .attr('y2', function(d) { return d.target.y; })
       .attr('class', 'link')
       .attr('stroke', 'white')
-      .attr('stroke-width', '3');
+      .attr('stroke-width', '3')
+      // interface listeners
+      .on('auxclick', deleteLink) 
+      .on('contextmenu', turnOffDefault)
 
   // add all edges to global selection
   edges = edgesEnter.merge(edges);
