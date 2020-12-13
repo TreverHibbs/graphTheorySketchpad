@@ -46,14 +46,17 @@ const deleteNode = (e, d) => {
  *        d - the datum of the node that triggered the mouseup event
  */
 const addEdge = (e, d) => {
+  console.debug('addEdge');
   const newLink = { source: selectedNodeIndex, target: d.index };
   links.push(newLink);
-  update();
-
   turnOffAddEdge();
+  turnOnStartAddEdge();
+
+  update();
 }
 
 const startAddEdge = (e, d) => {
+  console.debug("startAddEdge");
   selectedNodeIndex = d.index;
   //add a listener to every node but the current one so that addEdge
   //is not called when user releases mouse over selected edge
@@ -61,23 +64,38 @@ const startAddEdge = (e, d) => {
     .filter((d) => {
       return(selectedNodeIndex != d.index)
     })
-    .on('click.addEdge', addEdge);
+    .on('click.addEdge', addEdge)
+    .on('click.startAddEdge', null);
 }
 
 // interface on/off functions
 const turnOffAddNode = () => {
   mySvg.on('click.addNode', null);
 }
-
 const turnOnAddNode = () => {
   mySvg.on('click.addNode', addNode);
+}
+
+const turnOnAddEdgeStateListener = () => {
+  mySvg.on('click.addEdgeState', turnOffAddEdge);
+}
+const turnOffAddEdgeStateListener = () => {
+  mySvg.on('click.addEdgeState', null);
+}
+
+const turnOnStartAddEdge = () => {
+  mySvg.selectAll('.node')
+    .on('click.startAddEdge', startAddEdge);
+}
+const turnOffStartAddEdge = () => {
+  mySvg.selectAll('.node')
+    .on('click.startAddEdge', null);
 }
 
 const turnOnAddEdge = () => {
   mySvg.selectAll('.node')
     .on('click.addEdge', addEdge);
 }
-
 const turnOffAddEdge = () => {
   mySvg.selectAll('.node')
     .on('click.addEdge', null);
@@ -90,7 +108,7 @@ const turnOffDefault = (e) => {
 // interface listeners
 // more interface listeners within update function
 turnOnAddNode();
-mySvg.on('click', turnOffAddEdge);
+turnOnAddEdgeStateListener();
 
 // update graph visualization with svg drawings
 const update = () => {
@@ -122,12 +140,14 @@ const update = () => {
         return colors[d.id % 6];
       })
       // interface listeners
-      .on('click', startAddEdge)
+      .on('click.startAddEdge', startAddEdge)
       .on('auxclick', deleteNode) 
       .on('contextmenu', turnOffDefault)
       // turn of listener for add node so that new node is not created
       .on('mouseover.addNode', turnOffAddNode)
-      .on('mouseout.addNode', turnOnAddNode);
+      .on('mouseout.addNode', turnOnAddNode)
+      .on('mouseover.addEdgeState', turnOffAddEdgeStateListener)
+      .on('mouseout.addEdgeState', turnOnAddEdgeStateListener);
 
   // add all vertices to gobal selection
   // This is important for the updating of positions
