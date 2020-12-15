@@ -29,17 +29,39 @@ let selectedNodeIndex = null;
 //functions for dynamic interaction
 const addNode = (e) => {
   const coordinates = d3.pointer(e);
-  const newNode = { x: coordinates[0], y: coordinates[1], id: nodes.length };
+  const newNode = { x: coordinates[0], y: coordinates[1], id: nodes.length, links: [] };
   nodes.push(newNode);
   update();
 }
 
+//is deleted its incident edges can let there incident nodes know.
 const deleteNode = (e, d) => {
   e.preventDefault();
-  nodes.splice(d.index, 1);
+  const deletedNodes = nodes.splice(d.index, 1);
+  const deletedNode = deletedNodes[0];
 
-  //delete incident edges
-  
+    //delete incident edges
+  if(deletedNode.links.length > 0){
+    //sort edges to be deleted in descending order
+    //this way the change in indices of the links array won't affect the
+    //accuracy.
+    const linksSorted = deletedNode.links.sort( (a,b) => { return(a.index-b.index); } );
+    const linksSortedLength = linksSorted.length;
+    for(let i = 0; i < linksSortedLength; i++) {
+      const link = linksSorted[i];
+      const sourceNode = link.source;
+      const targetNode = link.target;
+      if(sourceNode != deletedNode){
+        sourceNode.links.splice(sourceNode.links.indexOf(link), 1);
+      }else{
+        targetNode.links.splice(targetNode.links.indexOf(link), 1);
+      }
+
+      links.splice(link.index, 1);
+      // update link objects so that there index property is accurate.
+      force.force("link").links(links);
+    }
+  }
 
   // interface state control
   turnOnAddNode();
@@ -47,11 +69,20 @@ const deleteNode = (e, d) => {
   update();
 }
 
-const deleteLink = (e, d) => {
-  e.preventDefault();
-  links.splice(d.index, 1);
+const deleteLink = (link) => {
+  const sourceNode = link.source;
+  const targetNode = link.target;
+  sourceNode.links.splice(sourceNode.links.indexOf(link), 1);
+  targetNode.links.splice(targetNode.links.indexOf(link), 1);
+  links.splice(link.index, 1);
 
   update();
+}
+
+const deleteLinkEvent = (e, d) => {
+  e.preventDefault();
+  deleteLink(d);
+
 }
 
 /**
@@ -65,8 +96,8 @@ const addEdge = (e, d) => {
   force.force("link").links(links);
 
   // update nodes with newLink's index
-  updateNodeEdges(selectedNodeIndex);
-  updateNodeEdges(d.index);
+  nodes[selectedNodeIndex].links.push(newLink);
+  nodes[d.index].links.push(newLink);
 
   // interface state control
   turnOffAddEdge();
@@ -74,27 +105,16 @@ const addEdge = (e, d) => {
 
   update();
 }
-const updateNodeEdges = (nodeIndex, linkIndex) => {
-  const node = nodes[nodeIndex];
-  if(node.edges){
-    node.edges.push(linkIndex);
-  } else {
-    Object.defineProperty(node, 'edges', {
-      value: [linkIndex],
-      writable: false
-    });
-  }
-}
 
 const startAddEdge = (e, d) => {
-  console.debug("startAddEdge");
   selectedNodeIndex = d.index;
   //add a listener to every node but the current one so that addEdge
   //is not called when user releases mouse over selected edge
   mySvg.selectAll('.node')
     .filter((d) => {
       return(selectedNodeIndex != d.index)
-    })
+
+      node.edges})
     .on('click.addEdge', addEdge)
     .on('click.startAddEdge', null);
 }
@@ -156,7 +176,7 @@ const update = () => {
       .attr('stroke', 'white')
       .attr('stroke-width', '3')
       // interface listeners
-      .on('auxclick', deleteLink) 
+      .on('auxclick', deleteLinkEvent) 
       .on('contextmenu', turnOffDefault)
 
   // add all edges to global selection
