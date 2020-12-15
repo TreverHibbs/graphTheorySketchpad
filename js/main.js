@@ -4,20 +4,22 @@
 const nodeValues = {
   'radius' : 20
 }
-const colors = [
-  "#fff8ac",
-  "#ddffac",
-  "#b3ffac",
-  "#acffcf",
-  "#acfff8",
-  "#acddff"
-]
+let lastNodeId = 0;
+const forceStrength = 0;
+
+//color
+const watchColorPicker = (event) => {
+  color = event.target.value;
+}
+let color = "#b3ffac";
+const colorPicker = document.getElementById('color-picker');
+colorPicker.addEventListener("change", watchColorPicker, false);
 
 //local selections
 const nodes = [];
 const links = [];
 const force = d3.forceSimulation()
-  .force('link', d3.forceLink().distance(0).strength(0));
+  .force('link', d3.forceLink().distance(0).strength(forceStrength));
 const mySvg = d3.select("#main");
 let vertices = mySvg.selectAll('.node');
 let edges = mySvg.selectAll('.link');
@@ -44,7 +46,13 @@ const dragstarted = (dragEvent) => {
 //functions for dynamic interaction
 const addNode = (e) => {
   const coordinates = d3.pointer(e);
-  const newNode = { x: coordinates[0], y: coordinates[1], id: nodes.length, links: [] };
+  const newNode = { 
+    x: coordinates[0], 
+    y: coordinates[1], 
+    id: lastNodeId++, 
+    links: [], 
+    color: color
+  };
   nodes.push(newNode);
   update();
 }
@@ -178,6 +186,7 @@ turnOnAddEdgeStateListener();
 
 // update graph visualization with svg drawings
 const update = () => {
+  console.log(color);
   //edge section
   edges = mySvg.selectAll('.link').data(links);
   // edges exit
@@ -221,29 +230,6 @@ const update = () => {
     }
   }
 
-//  updateVertices.select('.node_circle')
-//    .attr('cx', function(d) { return d.x; })
-//    .attr('cy', function(d) { return d.y; })
-//    .attr('id', (d) => {return(d.id)})
-//    .attr('r', nodeValues.radius)
-//    .style('fill', (d) => {
-//      return colors[d.id % 6];
-//    })
-//    // interface listeners
-//    .on('click.startAddEdge', startAddEdge)
-//    .on('auxclick', deleteNode) 
-//    .on('contextmenu', turnOffDefault)
-//    // turn of listener for add node so that new node is not created
-//    .on('mouseover.addNode', turnOffAddNode)
-//    .on('mouseout.addNode', turnOnAddNode)
-//    .on('mouseover.addEdgeState', turnOffAddEdgeStateListener)
-//    .on('mouseout.addEdgeState', turnOnAddEdgeStateListener);
-//
-//  updateVertices.select('.node_label')
-//    .attr('x', function(d) { return d.x; })
-//    .attr('y', function(d) { return d.y; })
-//    .attr('text-anchor', 'middle')
-//    .html((d) => { return('v' + d.id) } );
 
   //exit
   vertices.exit().remove();
@@ -269,9 +255,7 @@ const update = () => {
     .attr('cy', function(d) { return d.y; })
     .attr('id', (d) => {return(d.id)})
     .attr('r', nodeValues.radius)
-    .style('fill', (d) => {
-      return colors[d.id % 6];
-    })
+    .style('fill', d => d.color)
     // interface listeners
     .on('click.startAddEdge', startAddEdge)
     .on('auxclick', deleteNode) 
