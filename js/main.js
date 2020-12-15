@@ -5,7 +5,8 @@ const nodeValues = {
   'radius' : 20
 }
 let lastNodeId = 0;
-const forceStrength = 0;
+const forceStrength = .2;
+const linkDistance = 80;
 
 //color
 const watchColorPicker = (event) => {
@@ -19,7 +20,7 @@ colorPicker.addEventListener("change", watchColorPicker, false);
 const nodes = [];
 const links = [];
 const force = d3.forceSimulation()
-  .force('link', d3.forceLink().distance(0).strength(forceStrength));
+  .force('link', d3.forceLink().distance(linkDistance).strength(forceStrength));
 const mySvg = d3.select("#main");
 let vertices = mySvg.selectAll('.node');
 let edges = mySvg.selectAll('.link');
