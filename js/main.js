@@ -17,7 +17,7 @@ const colors = [
 const nodes = [];
 const links = [];
 const force = d3.forceSimulation()
-  .force('link', d3.forceLink().distance(100));
+  .force('link', d3.forceLink().distance(0).strength(0));
 const mySvg = d3.select("#main");
 let vertices = mySvg.selectAll('.node');
 let edges = mySvg.selectAll('.link');
@@ -25,6 +25,21 @@ let edges = mySvg.selectAll('.link');
 //local state variables
 let selectedNodeIndex = null;
 
+// drag functionality
+mySvg
+  .call(drag(force));
+
+const dragstarted = (dragEvent) => {
+  const node = d3.select(this);
+
+  dragEvent.on('drag', dragged);
+
+  function dragged(event, d) {
+      node
+        .attr("cx", d.x = dragEvent.x)
+        .attr("cy", d.y = dragEvent.y);
+    }
+}
 
 //functions for dynamic interaction
 const addNode = (e) => {
@@ -163,25 +178,11 @@ turnOnAddEdgeStateListener();
 
 // update graph visualization with svg drawings
 const update = () => {
-  edges = mySvg.selectAll('.link').data(links);
-  edges.exit().remove();
-  const edgesEnter = edges
-    .enter().append('line')
-      .attr('x1', function(d) { return d.source.x; })
-      .attr('y1', function(d) { return d.source.y; })
-      .attr('x2', function(d) { return d.target.x; })
-      .attr('y2', function(d) { return d.target.y; })
-      .attr('class', 'link')
-      .attr('stroke', 'white')
-      .attr('stroke-width', '3')
-      // interface listeners
-      .on('auxclick', deleteLinkEvent) 
-      .on('contextmenu', turnOffDefault)
-
-  // add all edges to global selection
-  edges = edgesEnter.merge(edges);
-
+  //vertices
   vertices = mySvg.selectAll('.node').data(nodes);
+
+  //update
+  //removedVertices = vertices.remove();
 
   //exit
   vertices.exit().remove();
@@ -223,9 +224,41 @@ const update = () => {
   vertices.select('.node_label')
     .attr('x', function(d) { return d.x; })
     .attr('y', function(d) { return d.y; })
-    .html('hello');
+    .attr('text-anchor', 'middle')
+    .html((d) => { return('v' + d.id) } );
+
+  //edge section
+  edges = mySvg.selectAll('.link').data(links);
+
+  // edges exit
+  edges.exit().remove();
+
+  // edges enter
+  const edgesEnter = edges
+    .enter()
+    .append('g').attr('class', 'link');
+
+  edgesEnter.append('line')
+    .attr('class', 'link_line');
+
+  // add all edges to global selection
+  edges = edgesEnter.merge(edges);
+
+  //edges style on interface
+  edges.select('.link_line')
+    .attr('x1', function(d) { return d.source.x; })
+    .attr('y1', function(d) { return d.source.y; })
+    .attr('x2', function(d) { return d.target.x; })
+    .attr('y2', function(d) { return d.target.y; })
+    .attr('stroke', 'white')
+    .attr('stroke-width', '3')
+    // interface listeners
+    .on('auxclick', deleteLinkEvent) 
+    .on('contextmenu', turnOffDefault);
+
+  edges.call(d3.drag());
     
-    
+
 
   force.nodes(nodes);
   force.force("link").links(links);
@@ -236,17 +269,19 @@ const update = () => {
 
 
 const tick = (e) => {
-  edges.attr('x1', function(d) { return d.source.x; })
-       .attr('y1', function(d) { return d.source.y; })
-       .attr('x2', function(d) { return d.target.x; })
-       .attr('y2', function(d) { return d.target.y; });
   d3.selectAll('.node_circle')
-          .attr('cx', function(d) { return d.x; })
-          .attr('cy', function(d) { return d.y; });
+    .attr('cx', function(d) { return d.x; })
+    .attr('cy', function(d) { return d.y; });
   d3.selectAll('.node_label')
-          .attr('x', function(d) { return d.x; })
-          .attr('y', function(d) { return d.y; });
+    .attr('x', function(d) { return d.x; })
+    .attr('y', function(d) { return d.y; });
+  d3.selectAll('.link_line')
+    .attr('x1', function(d) { return d.source.x; })
+    .attr('y1', function(d) { return d.source.y; })
+    .attr('x2', function(d) { return d.target.x; })
+    .attr('y2', function(d) { return d.target.y; });
 }
+
 
 force.on('tick', tick);
 
