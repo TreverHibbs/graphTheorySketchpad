@@ -178,11 +178,72 @@ turnOnAddEdgeStateListener();
 
 // update graph visualization with svg drawings
 const update = () => {
+  //edge section
+  edges = mySvg.selectAll('.link').data(links);
+  // edges exit
+  edges.exit().remove();
+
+  // edges enter
+  const edgesEnter = edges
+    .enter()
+    .append('g').attr('class', 'link');
+
+  edgesEnter.append('line')
+    .attr('class', 'link_line');
+
+  // add all edges to global selection
+  edges = edgesEnter.merge(edges);
+
+  //edges style on interface
+  edges.select('.link_line')
+    .attr('x1', function(d) { return d.source.x; })
+    .attr('y1', function(d) { return d.source.y; })
+    .attr('x2', function(d) { return d.target.x; })
+    .attr('y2', function(d) { return d.target.y; })
+    .attr('stroke', 'white')
+    .attr('stroke-width', '3')
+    // interface listeners
+    .on('auxclick', deleteLinkEvent) 
+    .on('contextmenu', turnOffDefault);
+
+
   //vertices
   vertices = mySvg.selectAll('.node').data(nodes);
 
   //update
-  //removedVertices = vertices.remove();
+  const updateVertices = vertices.remove();
+  // redraw nodes so that they appear above edges.
+  if(updateVertices.empty() != true) {
+    for (const element of updateVertices) {
+      mySvg.insert(() => {
+        return(element);
+      });
+    }
+  }
+
+//  updateVertices.select('.node_circle')
+//    .attr('cx', function(d) { return d.x; })
+//    .attr('cy', function(d) { return d.y; })
+//    .attr('id', (d) => {return(d.id)})
+//    .attr('r', nodeValues.radius)
+//    .style('fill', (d) => {
+//      return colors[d.id % 6];
+//    })
+//    // interface listeners
+//    .on('click.startAddEdge', startAddEdge)
+//    .on('auxclick', deleteNode) 
+//    .on('contextmenu', turnOffDefault)
+//    // turn of listener for add node so that new node is not created
+//    .on('mouseover.addNode', turnOffAddNode)
+//    .on('mouseout.addNode', turnOnAddNode)
+//    .on('mouseover.addEdgeState', turnOffAddEdgeStateListener)
+//    .on('mouseout.addEdgeState', turnOnAddEdgeStateListener);
+//
+//  updateVertices.select('.node_label')
+//    .attr('x', function(d) { return d.x; })
+//    .attr('y', function(d) { return d.y; })
+//    .attr('text-anchor', 'middle')
+//    .html((d) => { return('v' + d.id) } );
 
   //exit
   vertices.exit().remove();
@@ -227,36 +288,7 @@ const update = () => {
     .attr('text-anchor', 'middle')
     .html((d) => { return('v' + d.id) } );
 
-  //edge section
-  edges = mySvg.selectAll('.link').data(links);
 
-  // edges exit
-  edges.exit().remove();
-
-  // edges enter
-  const edgesEnter = edges
-    .enter()
-    .append('g').attr('class', 'link');
-
-  edgesEnter.append('line')
-    .attr('class', 'link_line');
-
-  // add all edges to global selection
-  edges = edgesEnter.merge(edges);
-
-  //edges style on interface
-  edges.select('.link_line')
-    .attr('x1', function(d) { return d.source.x; })
-    .attr('y1', function(d) { return d.source.y; })
-    .attr('x2', function(d) { return d.target.x; })
-    .attr('y2', function(d) { return d.target.y; })
-    .attr('stroke', 'white')
-    .attr('stroke-width', '3')
-    // interface listeners
-    .on('auxclick', deleteLinkEvent) 
-    .on('contextmenu', turnOffDefault);
-
-  edges.call(d3.drag());
     
 
 
@@ -269,17 +301,17 @@ const update = () => {
 
 
 const tick = (e) => {
+  d3.selectAll('.link_line')
+    .attr('x1', function(d) { return d.source.x; })
+    .attr('y1', function(d) { return d.source.y; })
+    .attr('x2', function(d) { return d.target.x; })
+    .attr('y2', function(d) { return d.target.y; });
   d3.selectAll('.node_circle')
     .attr('cx', function(d) { return d.x; })
     .attr('cy', function(d) { return d.y; });
   d3.selectAll('.node_label')
     .attr('x', function(d) { return d.x; })
     .attr('y', function(d) { return d.y; });
-  d3.selectAll('.link_line')
-    .attr('x1', function(d) { return d.source.x; })
-    .attr('y1', function(d) { return d.source.y; })
-    .attr('x2', function(d) { return d.target.x; })
-    .attr('y2', function(d) { return d.target.y; });
 }
 
 
