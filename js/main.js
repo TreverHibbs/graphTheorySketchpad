@@ -110,10 +110,9 @@ const startAddEdge = (e, d) => {
   selectedNodeIndex = d.index;
   //add a listener to every node but the current one so that addEdge
   //is not called when user releases mouse over selected edge
-  mySvg.selectAll('.node')
+  d3.selectAll('.node_circle')
     .filter((d) => {
       return(selectedNodeIndex != d.index)
-
       node.edges})
     .on('click.addEdge', addEdge)
     .on('click.startAddEdge', null);
@@ -136,20 +135,20 @@ const turnOffAddEdgeStateListener = () => {
 }
 
 const turnOnStartAddEdge = () => {
-  mySvg.selectAll('.node')
+  d3.selectAll('.node_circle')
     .on('click.startAddEdge', startAddEdge);
 }
 const turnOffStartAddEdge = () => {
-  mySvg.selectAll('.node')
+  d3.selectAll('.node_circle')
     .on('click.startAddEdge', null);
 }
 
 const turnOnAddEdge = () => {
-  mySvg.selectAll('.node')
+  d3.selectAll('.node_circle')
     .on('click.addEdge', addEdge);
 }
 const turnOffAddEdge = () => {
-  mySvg.selectAll('.node')
+  d3.selectAll('.node_circle')
     .on('click.addEdge', null);
 }
 
@@ -183,30 +182,50 @@ const update = () => {
   edges = edgesEnter.merge(edges);
 
   vertices = mySvg.selectAll('.node').data(nodes);
+
+  //exit
   vertices.exit().remove();
+
+  //enter
   const verticesEnter = vertices
-    .enter().append('circle')
-      .attr('cx', function(d) { return d.x; })
-      .attr('cy', function(d) { return d.y; })
-      .attr('class', 'node')
-      .attr('id', (d) => {return(d.id)})
-      .attr('r', nodeValues.radius)
-      .style('fill', (d) => {
-        return colors[d.id % 6];
-      })
-      // interface listeners
-      .on('click.startAddEdge', startAddEdge)
-      .on('auxclick', deleteNode) 
-      .on('contextmenu', turnOffDefault)
-      // turn of listener for add node so that new node is not created
-      .on('mouseover.addNode', turnOffAddNode)
-      .on('mouseout.addNode', turnOnAddNode)
-      .on('mouseover.addEdgeState', turnOffAddEdgeStateListener)
-      .on('mouseout.addEdgeState', turnOnAddEdgeStateListener);
+    .enter()
+    .append('g').attr('class', 'node');
+
+  verticesEnter.append('circle')
+    .attr('class', 'node_circle');
+
+  verticesEnter.append('text')
+    .attr('class', 'node_label');
+
 
   // add all vertices to gobal selection
   // This is important for the updating of positions
-  vertices = verticesEnter.merge(vertices);
+  vertices = vertices.merge(verticesEnter);
+
+  vertices.select('.node_circle')
+    .attr('cx', function(d) { return d.x; })
+    .attr('cy', function(d) { return d.y; })
+    .attr('id', (d) => {return(d.id)})
+    .attr('r', nodeValues.radius)
+    .style('fill', (d) => {
+      return colors[d.id % 6];
+    })
+    // interface listeners
+    .on('click.startAddEdge', startAddEdge)
+    .on('auxclick', deleteNode) 
+    .on('contextmenu', turnOffDefault)
+    // turn of listener for add node so that new node is not created
+    .on('mouseover.addNode', turnOffAddNode)
+    .on('mouseout.addNode', turnOnAddNode)
+    .on('mouseover.addEdgeState', turnOffAddEdgeStateListener)
+    .on('mouseout.addEdgeState', turnOnAddEdgeStateListener);
+
+  vertices.select('.node_label')
+    .attr('x', function(d) { return d.x; })
+    .attr('y', function(d) { return d.y; })
+    .html('hello');
+    
+    
 
   force.nodes(nodes);
   force.force("link").links(links);
@@ -221,8 +240,12 @@ const tick = (e) => {
        .attr('y1', function(d) { return d.source.y; })
        .attr('x2', function(d) { return d.target.x; })
        .attr('y2', function(d) { return d.target.y; });
-  vertices.attr('cx', function(d) { return d.x; })
+  d3.selectAll('.node_circle')
+          .attr('cx', function(d) { return d.x; })
           .attr('cy', function(d) { return d.y; });
+  d3.selectAll('.node_label')
+          .attr('x', function(d) { return d.x; })
+          .attr('y', function(d) { return d.y; });
 }
 
 force.on('tick', tick);
